@@ -1,49 +1,71 @@
-const canvas = document.getElementById('gameCanvas');
+п»їconst canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Розміри гри
+
 const SIZE = 4;
 const TILE_SIZE = 100;
 const PADDING = 10;
 
-// Масив для плиток
 let board = [];
-let nextTile = 2; // Наступна плитка для запуску
+let nextTile = 2;
 let animationFrameId;
+let gameOver = false;
 
-// Ініціалізація гри
 function init() {
-    board = createEmptyBoard();   // Створюємо порожню дошку
-    drawBoard();                  // Малюємо дошку
-    drawNextTile();               // Малюємо наступну плитку
-    console.log(board);           // Вивести поточну дошку для перевірки
+    board = createEmptyBoard();
+    nextTile = 2; 
+    gameOver = false;
+    cancelAnimationFrame(animationFrameId); /
+    drawBoard();
+    drawNextTile();
+    console.log(board);
+    document.getElementById('gameOverModal').style.display = 'none'; 
 }
 
-// Створює порожню дошку
+
+
 function createEmptyBoard() {
     let board = [];
     for (let i = 0; i < SIZE; i++) {
         let row = [];
         for (let j = 0; j < SIZE; j++) {
-            row.push(0);  // 0 означає порожню плитку
+            row.push(0);
         }
         board.push(row);
     }
     return board;
 }
 
-// Додає плитку на верхню позицію в заданому стовпці
 function addTileToTop(column) {
+    if (gameOver) return false; 
+    if (board[SIZE - 1][column] !== 0) { 
+        if (board[SIZE - 1][column] === nextTile) {
+            board[SIZE - 1][column] *= 2; 
+        } else {
+            handleGameOver(); 
+            return false;
+        }
+    }
     for (let i = 0; i < SIZE; i++) {
         if (board[i][column] === 0) {
             board[i][column] = nextTile;
-            nextTile = nextTile === 2 ? 4 : 2; // Змінюємо наступну плитку між 2 і 4
+            
+            if (i > 0 && board[i][column] === board[i - 1][column]) {
+                board[i - 1][column] *= 2;
+                board[i][column] = 0;
+            }
+            nextTile = Math.random() < 0.5 ? 2 : 4;
             break;
         }
     }
+    return true;
 }
 
-// Переміщує плитки знизу вгору і об'єднує їх
+function handleGameOver() {
+    const gameOverModal = document.getElementById('gameOverModal');
+    gameOverModal.style.display = 'flex'; 
+}
+
 function moveTilesUp() {
     for (let j = 0; j < SIZE; j++) {
         let merged = false;
@@ -67,7 +89,6 @@ function moveTilesUp() {
     }
 }
 
-// Переміщує плитки вліво і об'єднує їх
 function moveTilesLeft() {
     for (let i = 0; i < SIZE; i++) {
         let merged = false;
@@ -91,7 +112,6 @@ function moveTilesLeft() {
     }
 }
 
-// Переміщує плитки вправо і об'єднує їх
 function moveTilesRight() {
     for (let i = 0; i < SIZE; i++) {
         let merged = false;
@@ -115,7 +135,6 @@ function moveTilesRight() {
     }
 }
 
-// Переміщує плитки вниз і об'єднує їх
 function moveTilesDown() {
     for (let j = 0; j < SIZE; j++) {
         let merged = false;
@@ -139,20 +158,15 @@ function moveTilesDown() {
     }
 }
 
-
-
-// Малює ігрову дошку
 function drawBoard() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);  // Очищуємо canvas
-
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < SIZE; i++) {
         for (let j = 0; j < SIZE; j++) {
-            drawTile(i, j, board[i][j]);  // Малюємо кожну плитку
+            drawTile(i, j, board[i][j]);
         }
     }
 }
 
-// Малює одну плитку на заданій позиції
 function drawTile(x, y, value) {
     ctx.fillStyle = getTileColor(value);
     ctx.fillRect(y * TILE_SIZE + PADDING, x * TILE_SIZE + PADDING, TILE_SIZE - PADDING * 2, TILE_SIZE - PADDING * 2);
@@ -166,71 +180,116 @@ function drawTile(x, y, value) {
     }
 }
 
-// Вибирає колір для кожної плитки залежно від її значення
+
+
 function getTileColor(value) {
     switch (value) {
-        case 0: return '#cdc1b4';      // Порожня плитка
-        case 2: return '#eee4da';      // Плитка 2
-        case 4: return '#ede0c8';      // Плитка 4
-        case 8: return '#f2b179';      // Плитка 8
-        case 16: return '#f59563';     // Плитка 16
-        case 32: return '#f67c5f';     // Плитка 32
-        case 64: return '#f65e3b';     // Плитка 64
-        case 128: return '#edcf72';    // Плитка 128
-        case 256: return '#edcc61';    // Плитка 256
-        case 512: return '#edc850';    // Плитка 512
-        case 1024: return '#edc53f';   // Плитка 1024
-        case 2048: return '#edc22e';   // Плитка 2048
-        default: return '#3c3a32';     // Інші значення
+        case 0: return '#cdc1b4';
+        case 2: return '#eee4da';
+        case 4: return '#ede0c8';
+        case 8: return '#f2b179';
+        case 16: return '#f59563';
+        case 32: return '#f67c5f';
+        case 64: return '#f65e3b';
+        case 128: return '#edcf72';
+        case 256: return '#edcc61';
+        case 512: return '#edc850';
+        case 1024: return '#edc53f';
+        case 2048: return '#edc22e';
+        default: return '#3c3a32';
     }
 }
 
-// Малює наступну плитку внизу
 function drawNextTile() {
-    ctx.clearRect(0, canvas.height - TILE_SIZE, canvas.width, TILE_SIZE);  // Очищуємо нижню частину canvas
-    drawTile(SIZE, 1, nextTile);  // Малюємо наступну плитку внизу
+    ctx.clearRect(0, canvas.height - TILE_SIZE, canvas.width, TILE_SIZE);
+
+
+    const centerX = (canvas.width - TILE_SIZE) / 2; 
+    const centerY = canvas.height - TILE_SIZE - 10; 
+
+    drawTile(centerY / TILE_SIZE, centerX / TILE_SIZE, nextTile); 
 }
 
-// Анімація запуску плитки
-function animateTile(column) {
-    let y = canvas.height - TILE_SIZE;
-    const targetY = 0;
 
-    function step() {
-        ctx.clearRect(column * TILE_SIZE + PADDING, y, TILE_SIZE - PADDING * 2, TILE_SIZE - PADDING * 2);
-        y -= 10;  // Швидкість анімації
-        if (y <= targetY) {
-            y = targetY;
-            addTileToTop(column);
+
+function animateTile(column) {
+    if (gameOver) return;
+    let y = canvas.height - TILE_SIZE;
+    let targetRow = SIZE - 1;
+
+   
+    for (let i = 0; i < SIZE; i++) {
+        if (board[i][column] === 0) {
+            targetRow = i;
+            break;
+        }
+    }
+
+    const targetY = targetRow * TILE_SIZE + PADDING; 
+    const duration = 500; 
+    const startTime = performance.now();
+
+    function easeOutQuad(t) {
+        return t * (2 - t);
+    }
+
+    function step(currentTime) {
+        const elapsedTime = currentTime - startTime;
+        const progress = Math.min(elapsedTime / duration, 1);
+        const easedProgress = easeOutQuad(progress);
+        y = canvas.height - TILE_SIZE - (canvas.height - TILE_SIZE - targetY) * easedProgress;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height); 
+        drawBoard(); 
+        drawTile(y / TILE_SIZE, column, nextTile); 
+
+        if (progress < 1) {
+            animationFrameId = requestAnimationFrame(step);
+        } else {
+            if (!addTileToTop(column)) {
+                cancelAnimationFrame(animationFrameId);
+                return;
+            }
             moveTilesUp();
             drawBoard();
             drawNextTile();
             cancelAnimationFrame(animationFrameId);
-        } else {
-            drawTile(y / TILE_SIZE, column, nextTile);
-            animationFrameId = requestAnimationFrame(step);
         }
     }
 
-    step();
+    animationFrameId = requestAnimationFrame(step);
 }
 
-// Обробка натискання клавіш
 document.addEventListener('keydown', function (event) {
-    if (event.key === 'ArrowLeft') {  // Ліва стрілка для переміщення вліво
+    if (gameOver) return;
+    if (event.key === 'ArrowLeft') {
         moveTilesLeft();
         drawBoard();
         drawNextTile();
-    } else if (event.key === 'ArrowRight') {  // Права стрілка для переміщення вправо
+    } else if (event.key === 'ArrowRight') {
         moveTilesRight();
         drawBoard();
         drawNextTile();
-    } else if (event.key >= '1' && event.key <= '4') {  // Клавіші 1-4 для запуску плитки в відповідний стовпець
+    } else if (event.key === 'ArrowUp') {
+        moveTilesUp();
+        drawBoard();
+        drawNextTile();
+    } else if (event.key >= '1' && event.key <= '4') {
         const column = parseInt(event.key) - 1;
         animateTile(column);
     }
 });
 
 
-// Ініціалізація гри
+document.getElementById('modalRestartButton').addEventListener('click', function () {
+    cancelAnimationFrame(animationFrameId);
+    init();
+});
+
+//РґР»СЏ РєРЅРѕРїРєРё РїРµСЂРµР·Р°РїСѓСЃРєСѓ РЅР° РіРѕР»РѕРІРЅРѕРјСѓ РµРєСЂР°РЅС–
+document.getElementById('restartButton').addEventListener('click', function () {
+    cancelAnimationFrame(animationFrameId);
+    init();
+});
+
 init();

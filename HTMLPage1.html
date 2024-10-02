@@ -4,25 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2048 Game</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #faf8ef;
-        }
-
-        canvas {
-            background-color: #bbada0;
-            border-radius: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="StyleSheet1.css">
 </head>
 <body>
-    <canvas id="gameCanvas" width="420" height="520"></canvas>
-    <script src="Script1.js"></script> 
+    <canvas id="gameCanvas" width="400" height="520"></canvas>
+    <button id="restartButton">Restart</button>
+
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content">
+            <p>Game Over!</p>
+            <button id="modalRestartButton">Restart</button>
+        </div>
+    </div>
+
+    <script src="Script1.js"></script>
 </body>
 </html>
